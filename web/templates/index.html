@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate RAG - Intelligent Knowledge Explorer</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e1b4b;
+            --dark-light: #312e81;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --gradient-2: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            --gradient-3: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-900);
+            color: var(--gray-100);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 40% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                var(--gray-900);
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 27, 75, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-1);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .stat-badge i {
+            color: var(--primary-light);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            text-align: center;
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-hero {
+            margin-bottom: 2rem;
+        }
+
+        .upload-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upload-hero p {
+            font-size: 1.25rem;
+            color: var(--gray-400);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .upload-zone {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 3rem;
+            background: rgba(99, 102, 241, 0.05);
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover, .upload-zone.drag-over {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-light);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(30, 27, 75, 0.5);
+            padding: 0.5rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--gray-400);
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover {
+            color: var(--gray-100);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Content Type Selector */
+        .content-selector {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .content-toggle {
+            display: none;
+        }
+
+        .content-label {
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(30, 27, 75, 0.8);
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .content-label:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .content-toggle:checked + .content-label {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        .content-label i {
+            font-size: 1.25rem;
+        }
+
+        .content-label .icon-text { color: #60a5fa; }
+        .content-label .icon-diagram { color: #34d399; }
+        .content-label .icon-table { color: #fbbf24; }
+
+        /* Tab Panels */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .content-card {
+            background: rgba(30, 27, 75, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-physics { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-mathematics { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-chemistry { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-data_science { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .badge-general { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+
+        .card-content {
+            color: var(--gray-300);
+            line-height: 1.7;
+        }
+
+        .card-formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Flashcard Section */
+        .flashcard-container {
+            max-width: 600px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .flashcard-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .flashcard-progress {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            transition: width 0.3s ease;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 350px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-type {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .flashcard-difficulty {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .flashcard-content {
+            font-size: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .flashcard-hint {
+            position: absolute;
+            bottom: 1rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .flashcard-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.25rem;
+        }
+
+        .flashcard-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .flashcard-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* MCQ Section */
+        .mcq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .mcq-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .mcq-score {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            background: rgba(30, 27, 75, 0.8);
+        }
+
+        .score-correct { color: var(--secondary); }
+        .score-wrong { color: var(--danger); }
+
+        .mcq-question-card {
+            background: rgba(30, 27, 75, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-number {
+            color: var(--primary-light);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .mcq-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .mcq-option {
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mcq-option:hover:not(.selected):not(.disabled) {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .mcq-option.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+
+        .mcq-option.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--secondary);
+        }
+
+        .mcq-option.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .mcq-explanation {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--secondary);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            display: none;
+        }
+
+        .mcq-explanation.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Chatbot Section */
+        .chat-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 250px);
+            min-height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: rgba(30, 27, 75, 0.4);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-bottom: none;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .chat-message.assistant .chat-avatar {
+            background: var(--gradient-1);
+        }
+
+        .chat-message.user .chat-avatar {
+            background: var(--gradient-2);
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            line-height: 1.6;
+        }
+
+        .chat-message.assistant .chat-bubble {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: var(--primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-sources {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+            font-size: 0.8rem;
+            color: var(--gray-400);
+        }
+
+        .chat-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .suggestion-chip {
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(30, 27, 75, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--gray-100);
+            font-size: 1rem;
+            resize: none;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+        }
+
+        .chat-send {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gradient-1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .chat-send:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Tables Display */
+        .table-card {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .data-table th {
+            background: rgba(99, 102, 241, 0.1);
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+
+        .data-table tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+            animation: toastIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 300px;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast-success {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .toast-error {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .toast-info {
+            background: rgba(99, 102, 241, 0.9);
+            color: white;
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-select {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            background: rgba(30, 27, 75, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--gray-100);
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray-500);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--gray-600);
+        }
+
+        /* Difficulty Badges */
+        .difficulty-easy { color: var(--secondary); }
+        .difficulty-medium { color: var(--accent); }
+        .difficulty-hard { color: var(--danger); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .upload-hero h1 {
+                font-size: 2rem;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-bubble {
+                max-width: 85%;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <span class="logo-text">Ultimate RAG</span>
+            </div>
+            <div class="header-stats" id="headerStats">
+                <div class="stat-badge">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="statChunks">0 Chunks</span>
+                </div>
+                <div class="stat-badge">
+                    <i class="fas fa-square-root-alt"></i>
+                    <span id="statFormulas">0 Formulas</span>
+                </div>
+                <div class="stat-badge">
+                    <i class="fas fa-table"></i>
+                    <span id="statTables">0 Tables</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-hero">
+                <h1>Intelligent Knowledge Explorer</h1>
+                <p>Upload your PDF documents to extract knowledge, create flashcards, generate quizzes, and chat with your content.</p>
+            </div>
+            <div class="upload-zone" id="uploadZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Drop your PDF here</h3>
+                <p>or click to browse files</p>
+                <input type="file" id="fileInput" accept=".pdf" hidden>
+            </div>
+            <div class="upload-buttons">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i>
+                    Upload PDF
+                </button>
+                <button class="btn btn-secondary" onclick="loadDemo()">
+                    <i class="fas fa-play"></i>
+                    Load Demo
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Content (Hidden until document loaded) -->
+        <section class="content-section" id="contentSection" style="display: none;">
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="explore" onclick="switchTab('explore')">
+                    <i class="fas fa-compass"></i>
+                    Explore Content
+                </button>
+                <button class="nav-tab" data-tab="flashcards" onclick="switchTab('flashcards')">
+                    <i class="fas fa-clone"></i>
+                    Flash Cards
+                </button>
+                <button class="nav-tab" data-tab="mcq" onclick="switchTab('mcq')">
+                    <i class="fas fa-tasks"></i>
+                    MCQ Quiz
+                </button>
+                <button class="nav-tab" data-tab="chat" onclick="switchTab('chat')">
+                    <i class="fas fa-comments"></i>
+                    AI Chat
+                </button>
+            </nav>
+
+            <!-- Explore Tab -->
+            <div class="tab-panel active" id="explorePanel">
+                <!-- Content Type Selector -->
+                <div class="content-selector">
+                    <input type="checkbox" id="toggleText" class="content-toggle" checked>
+                    <label for="toggleText" class="content-label">
+                        <i class="fas fa-file-alt icon-text"></i>
+                        <span>Text Content</span>
+                    </label>
+
+                    <input type="checkbox" id="toggleDiagrams" class="content-toggle" checked>
+                    <label for="toggleDiagrams" class="content-label">
+                        <i class="fas fa-project-diagram icon-diagram"></i>
+                        <span>Diagrams</span>
+                    </label>
+
+                    <input type="checkbox" id="toggleTables" class="content-toggle" checked>
+                    <label for="toggleTables" class="content-label">
+                        <i class="fas fa-table icon-table"></i>
+                        <span>Tables</span>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" onclick="loadContent()" style="display: block; margin: 0 auto 2rem;">
+                    <i class="fas fa-search"></i>
+                    Load Content
+                </button>
+
+                <!-- Content Display -->
+                <div id="contentDisplay">
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>Select content types and click "Load Content"</h3>
+                        <p>Choose what you want to explore from the document</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flashcards Tab -->
+            <div class="tab-panel" id="flashcardsPanel">
+                <div class="filter-controls">
+                    <select class="filter-select" id="flashcardDomain">
+                        <option value="all">All Domains</option>
+                        <option value="physics">Physics</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="data_science">Data Science</option>
+                    </select>
+                    <select class="filter-select" id="flashcardCount">
+                        <option value="5">5 Cards</option>
+                        <option value="10" selected>10 Cards</option>
+                        <option value="20">20 Cards</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="generateFlashcards()">
+                        <i class="fas fa-sync-alt"></i>
+                        Generate Cards
+                    </button>
+                </div>
+
+                <div class="flashcard-container" id="flashcardContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-layer-group"></i>
+                        <h3>No flashcards yet</h3>
+                        <p>Click "Generate Cards" to create flashcards from your content</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCQ Tab -->
+            <div class="tab-panel" id="mcqPanel">
+                <div class="filter-controls">
+                    <select class="filter-select" id="mcqDomain">
+                        <option value="all">All Domains</option>
+                        <option value="physics">Physics</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="data_science">Data Science</option>
+                    </select>
+                    <select class="filter-select" id="mcqDifficulty">
+                        <option value="mixed">Mixed Difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <select class="filter-select" id="mcqCount">
+                        <option value="5">5 Questions</option>
+                        <option value="10" selected>10 Questions</option>
+                        <option value="20">20 Questions</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="generateMCQ()">
+                        <i class="fas fa-question-circle"></i>
+                        Generate Quiz
+                    </button>
+                </div>
+
+                <div class="mcq-container" id="mcqContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No quiz generated yet</h3>
+                        <p>Click "Generate Quiz" to create MCQ questions from your content</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Tab -->
+            <div class="tab-panel" id="chatPanel">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message assistant">
+                            <div class="chat-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="chat-bubble">
+                                <p>Hello! I'm your AI assistant for exploring this document. I can help you:</p>
+                                <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
+                                    <li>Explain concepts and formulas</li>
+                                    <li>Find specific information</li>
+                                    <li>Answer questions about the material</li>
+                                    <li>Create study materials</li>
+                                </ul>
+                                <p>What would you like to know?</p>
+                                <div class="chat-suggestions">
+                                    <span class="suggestion-chip" onclick="sendSuggestion('Show me all formulas')">Show all formulas</span>
+                                    <span class="suggestion-chip" onclick="sendSuggestion('What topics are covered?')">What topics are covered?</span>
+                                    <span class="suggestion-chip" onclick="sendSuggestion('Create a summary')">Create a summary</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <textarea
+                            class="chat-input"
+                            id="chatInput"
+                            placeholder="Ask anything about the document..."
+                            rows="1"
+                            onkeydown="handleChatKeydown(event)"
+                        ></textarea>
+                        <button class="chat-send" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // =====================================================================
+        // STATE MANAGEMENT
+        // =====================================================================
+        let state = {
+            documentLoaded: false,
+            currentTab: 'explore',
+            flashcards: [],
+            currentFlashcardIndex: 0,
+            mcqQuestions: [],
+            currentMcqIndex: 0,
+            mcqScore: { correct: 0, wrong: 0 },
+            conversationId: null,
+            stats: { chunks: 0, formulas: 0, tables: 0, diagrams: 0 }
+        };
+
+        // =====================================================================
+        // INITIALIZATION
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFileUpload();
+            checkExistingDocument();
+        });
+
+        function setupFileUpload() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'application/pdf') {
+                    uploadFile(file);
+                } else {
+                    showToast('Please upload a PDF file', 'error');
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) uploadFile(file);
+            });
+        }
+
+        async function checkExistingDocument() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                if (data.loaded) {
+                    state.documentLoaded = true;
+                    state.stats = data;
+                    updateStats(data);
+                    showContentSection();
+                }
+            } catch (error) {
+                console.log('No existing document');
+            }
+        }
+
+        // =====================================================================
+        // FILE UPLOAD
+        // =====================================================================
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showToast('Processing document...', 'info');
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    state.documentLoaded = true;
+                    state.stats = data.stats;
+                    updateStats(data.stats);
+                    showContentSection();
+                    showToast('Document processed successfully!', 'success');
+                } else {
+                    showToast(data.error || 'Upload failed', 'error');
+                }
+            } catch (error) {
+                showToast('Upload failed: ' + error.message, 'error');
+            }
+        }
+
+        async function loadDemo() {
+            showToast('Loading demo...', 'info');
+
+            try {
+                const response = await fetch('/api/load_demo', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    state.documentLoaded = true;
+                    state.stats = data.stats;
+                    updateStats(data.stats);
+                    showContentSection();
+                    showToast('Demo loaded successfully!', 'success');
+                } else {
+                    showToast(data.error || 'Failed to load demo', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to load demo: ' + error.message, 'error');
+            }
+        }
+
+        // =====================================================================
+        // UI UPDATES
+        // =====================================================================
+        function updateStats(stats) {
+            document.getElementById('statChunks').textContent = `${stats.chunks || 0} Chunks`;
+            document.getElementById('statFormulas').textContent = `${stats.formulas || 0} Formulas`;
+            document.getElementById('statTables').textContent = `${stats.tables || 0} Tables`;
+        }
+
+        function showContentSection() {
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('contentSection').style.display = 'block';
+        }
+
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `${tabName}Panel`);
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // =====================================================================
+        // CONTENT LOADING
+        // =====================================================================
+        async function loadContent() {
+            const types = [];
+            if (document.getElementById('toggleText').checked) types.push('text');
+            if (document.getElementById('toggleDiagrams').checked) types.push('diagrams');
+            if (document.getElementById('toggleTables').checked) types.push('tables');
+
+            if (types.length === 0) {
+                showToast('Please select at least one content type', 'error');
+                return;
+            }
+
+            const display = document.getElementById('contentDisplay');
+            display.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch('/api/content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ types })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    renderContent(data.results);
+                } else {
+                    showToast(data.error || 'Failed to load content', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to load content: ' + error.message, 'error');
+            }
+        }
+
+        function renderContent(results) {
+            const display = document.getElementById('contentDisplay');
+            let html = '<div class="content-grid">';
+
+            // Render text chunks
+            results.text?.forEach(chunk => {
+                html += `
+                    <div class="content-card">
+                        <div class="card-header">
+                            <span class="card-badge badge-${chunk.domain}">${chunk.domain}</span>
+                            <span style="color: var(--gray-500); font-size: 0.8rem;">${chunk.type}</span>
+                        </div>
+                        ${chunk.heading ? `<h4 style="margin-bottom: 0.75rem; color: var(--primary-light);">${chunk.heading}</h4>` : ''}
+                        <div class="card-content">${chunk.content}</div>
+                        <div class="card-meta">
+                            ${chunk.page ? `<span><i class="fas fa-file"></i> Page ${chunk.page}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render formulas
+            results.formulas?.forEach(formula => {
+                html += `
+                    <div class="content-card">
+                        <div class="card-header">
+                            <span class="card-badge badge-${formula.domain}">${formula.domain}</span>
+                            <span style="color: var(--gray-500); font-size: 0.8rem;">Formula</span>
+                        </div>
+                        <div class="card-formula">$$${formula.latex}$$</div>
+                        ${formula.plain_text ? `<p class="card-content">${formula.plain_text}</p>` : ''}
+                        <div class="card-meta">
+                            ${formula.page ? `<span><i class="fas fa-file"></i> Page ${formula.page}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render tables
+            results.tables?.forEach(table => {
+                html += `
+                    <div class="content-card table-card">
+                        <div class="card-header">
+                            <span class="card-badge badge-general">Table</span>
+                            ${table.page ? `<span style="color: var(--gray-500); font-size: 0.8rem;">Page ${table.page}</span>` : ''}
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>${table.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody>
+                                ${table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                            </tbody>
+                        </table>
+                        ${table.total_rows > 5 ? `<p style="margin-top: 0.5rem; color: var(--gray-500); font-size: 0.8rem;">Showing 5 of ${table.total_rows} rows</p>` : ''}
+                    </div>
+                `;
+            });
+
+            // Render diagrams
+            results.diagrams?.forEach(diagram => {
+                html += `
+                    <div class="content-card">
+                        <div class="card-header">
+                            <span class="card-badge badge-general">${diagram.type}</span>
+                        </div>
+                        <div style="text-align: center; padding: 2rem; background: rgba(0,0,0,0.2); border-radius: var(--radius);">
+                            <i class="fas fa-image" style="font-size: 3rem; color: var(--gray-500);"></i>
+                        </div>
+                        ${diagram.caption ? `<p class="card-content" style="margin-top: 1rem;">${diagram.caption}</p>` : ''}
+                        <div class="card-meta">
+                            ${diagram.page ? `<span><i class="fas fa-file"></i> Page ${diagram.page}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            if (!results.text?.length && !results.formulas?.length && !results.tables?.length && !results.diagrams?.length) {
+                html = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No content found</h3>
+                        <p>Try selecting different content types</p>
+                    </div>
+                `;
+            }
+
+            display.innerHTML = html;
+
+            // Re-render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // =====================================================================
+        // FLASHCARDS
+        // =====================================================================
+        async function generateFlashcards() {
+            const domain = document.getElementById('flashcardDomain').value;
+            const count = parseInt(document.getElementById('flashcardCount').value);
+
+            const container = document.getElementById('flashcardContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch('/api/flashcards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain, count })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.flashcards.length > 0) {
+                    state.flashcards = data.flashcards;
+                    state.currentFlashcardIndex = 0;
+                    renderFlashcard();
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>No flashcards generated</h3>
+                            <p>Try selecting a different domain or loading more content</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showToast('Failed to generate flashcards: ' + error.message, 'error');
+            }
+        }
+
+        function renderFlashcard() {
+            const container = document.getElementById('flashcardContainer');
+            const card = state.flashcards[state.currentFlashcardIndex];
+            const total = state.flashcards.length;
+            const current = state.currentFlashcardIndex + 1;
+
+            container.innerHTML = `
+                <div class="flashcard-controls">
+                    <div class="flashcard-progress">
+                        <span>${current} / ${total}</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(current / total) * 100}%"></div>
+                        </div>
+                    </div>
+                    <span class="card-badge badge-${card.domain}">${card.domain}</span>
+                </div>
+
+                <div class="flashcard" id="activeFlashcard" onclick="flipFlashcard()">
+                    <div class="flashcard-face flashcard-front">
+                        <span class="flashcard-type">${card.type}</span>
+                        <span class="flashcard-difficulty difficulty-${card.difficulty}">
+                            <i class="fas fa-${card.difficulty === 'easy' ? 'smile' : card.difficulty === 'medium' ? 'meh' : 'frown'}"></i>
+                        </span>
+                        <div class="flashcard-content">${card.front}</div>
+                        <span class="flashcard-hint">Click to reveal answer</span>
+                    </div>
+                    <div class="flashcard-face flashcard-back">
+                        <span class="flashcard-type">Answer</span>
+                        <div class="flashcard-content">${card.back}</div>
+                        <span class="flashcard-hint">Click to flip back</span>
+                    </div>
+                </div>
+
+                <div class="flashcard-nav">
+                    <button class="flashcard-btn" onclick="prevFlashcard()" ${current === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="flashcard-btn" onclick="shuffleFlashcards()">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="flashcard-btn" onclick="nextFlashcard()" ${current === total ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function flipFlashcard() {
+            document.getElementById('activeFlashcard')?.classList.toggle('flipped');
+        }
+
+        function prevFlashcard() {
+            if (state.currentFlashcardIndex > 0) {
+                state.currentFlashcardIndex--;
+                renderFlashcard();
+            }
+        }
+
+        function nextFlashcard() {
+            if (state.currentFlashcardIndex < state.flashcards.length - 1) {
+                state.currentFlashcardIndex++;
+                renderFlashcard();
+            }
+        }
+
+        function shuffleFlashcards() {
+            for (let i = state.flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [state.flashcards[i], state.flashcards[j]] = [state.flashcards[j], state.flashcards[i]];
+            }
+            state.currentFlashcardIndex = 0;
+            renderFlashcard();
+            showToast('Flashcards shuffled!', 'info');
+        }
+
+        // =====================================================================
+        // MCQ QUIZ
+        // =====================================================================
+        async function generateMCQ() {
+            const domain = document.getElementById('mcqDomain').value;
+            const difficulty = document.getElementById('mcqDifficulty').value;
+            const count = parseInt(document.getElementById('mcqCount').value);
+
+            const container = document.getElementById('mcqContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch('/api/mcq', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain, difficulty, count })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.questions.length > 0) {
+                    state.mcqQuestions = data.questions;
+                    state.currentMcqIndex = 0;
+                    state.mcqScore = { correct: 0, wrong: 0 };
+                    renderMCQ();
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>No questions generated</h3>
+                            <p>Try selecting a different domain or difficulty</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showToast('Failed to generate quiz: ' + error.message, 'error');
+            }
+        }
+
+        function renderMCQ() {
+            const container = document.getElementById('mcqContainer');
+            const question = state.mcqQuestions[state.currentMcqIndex];
+            const total = state.mcqQuestions.length;
+            const current = state.currentMcqIndex + 1;
+
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+            container.innerHTML = `
+                <div class="mcq-header">
+                    <div>
+                        <span style="color: var(--gray-400);">Question ${current} of ${total}</span>
+                        <span class="card-badge badge-${question.domain}" style="margin-left: 1rem;">${question.domain}</span>
+                        <span class="difficulty-${question.difficulty}" style="margin-left: 0.5rem;">
+                            <i class="fas fa-star"></i> ${question.difficulty}
+                        </span>
+                    </div>
+                    <div class="mcq-score">
+                        <div class="score-item score-correct">
+                            <i class="fas fa-check"></i>
+                            <span>${state.mcqScore.correct}</span>
+                        </div>
+                        <div class="score-item score-wrong">
+                            <i class="fas fa-times"></i>
+                            <span>${state.mcqScore.wrong}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mcq-question-card">
+                    <div class="question-number">Question ${current}</div>
+                    <div class="question-text">${question.question}</div>
+                    <div class="mcq-options">
+                        ${question.options.map((opt, i) => `
+                            <div class="mcq-option" data-index="${i}" onclick="selectMcqOption(${i})">
+                                <span class="option-letter">${letters[i]}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mcq-explanation" id="mcqExplanation">
+                        <strong>Explanation:</strong> ${question.explanation}
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" onclick="prevMcqQuestion()" ${current === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextMcqBtn" onclick="nextMcqQuestion()" style="display: none;">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectMcqOption(selectedIndex) {
+            const question = state.mcqQuestions[state.currentMcqIndex];
+            const options = document.querySelectorAll('.mcq-option');
+
+            // Disable further selection
+            if (options[0].classList.contains('disabled')) return;
+
+            options.forEach((opt, i) => {
+                opt.classList.add('disabled');
+                if (i === question.correct) {
+                    opt.classList.add('correct');
+                } else if (i === selectedIndex && selectedIndex !== question.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+
+            // Update score
+            if (selectedIndex === question.correct) {
+                state.mcqScore.correct++;
+                showToast('Correct!', 'success');
+            } else {
+                state.mcqScore.wrong++;
+                showToast('Incorrect', 'error');
+            }
+
+            // Show explanation and next button
+            document.getElementById('mcqExplanation').classList.add('show');
+            document.getElementById('nextMcqBtn').style.display = 'inline-flex';
+
+            // Update score display
+            document.querySelector('.score-correct span').textContent = state.mcqScore.correct;
+            document.querySelector('.score-wrong span').textContent = state.mcqScore.wrong;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function prevMcqQuestion() {
+            if (state.currentMcqIndex > 0) {
+                state.currentMcqIndex--;
+                renderMCQ();
+            }
+        }
+
+        function nextMcqQuestion() {
+            if (state.currentMcqIndex < state.mcqQuestions.length - 1) {
+                state.currentMcqIndex++;
+                renderMCQ();
+            } else {
+                // Show final score
+                const total = state.mcqQuestions.length;
+                const percentage = Math.round((state.mcqScore.correct / total) * 100);
+
+                document.getElementById('mcqContainer').innerHTML = `
+                    <div style="text-align: center; padding: 3rem;">
+                        <i class="fas fa-trophy" style="font-size: 4rem; color: ${percentage >= 70 ? 'var(--secondary)' : percentage >= 50 ? 'var(--accent)' : 'var(--danger)'}; margin-bottom: 1rem;"></i>
+                        <h2 style="margin-bottom: 1rem;">Quiz Complete!</h2>
+                        <p style="font-size: 2rem; margin-bottom: 0.5rem;">${state.mcqScore.correct} / ${total}</p>
+                        <p style="color: var(--gray-400); margin-bottom: 2rem;">${percentage}% correct</p>
+                        <button class="btn btn-primary" onclick="generateMCQ()">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // =====================================================================
+        // CHATBOT
+        // =====================================================================
+        function handleChatKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            input.value = '';
+            appendMessage('user', message);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        conversation_id: state.conversationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    state.conversationId = data.conversation_id;
+                    appendMessage('assistant', data.response, data.sources, data.suggestions);
+                } else {
+                    appendMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+                }
+            } catch (error) {
+                appendMessage('assistant', 'Sorry, I could not connect to the server.');
+            }
+        }
+
+        function sendSuggestion(text) {
+            document.getElementById('chatInput').value = text;
+            sendMessage();
+        }
+
+        function appendMessage(role, content, sources = [], suggestions = []) {
+            const messages = document.getElementById('chatMessages');
+
+            let sourcesHtml = '';
+            if (sources.length > 0) {
+                sourcesHtml = `
+                    <div class="chat-sources">
+                        <strong>Sources:</strong>
+                        ${sources.map(s => `
+                            <span style="display: inline-block; margin: 4px;">
+                                <i class="fas fa-${s.type === 'formula' ? 'square-root-alt' : 'file-alt'}"></i>
+                                ${s.heading || s.latex || ''} ${s.page ? `(Page ${s.page})` : ''}
+                            </span>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            let suggestionsHtml = '';
+            if (suggestions.length > 0) {
+                suggestionsHtml = `
+                    <div class="chat-suggestions">
+                        ${suggestions.map(s => `
+                            <span class="suggestion-chip" onclick="sendSuggestion('${s.replace(/'/g, "\\'")}')">${s}</span>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            messages.innerHTML += `
+                <div class="chat-message ${role}">
+                    <div class="chat-avatar">
+                        <i class="fas fa-${role === 'user' ? 'user' : 'robot'}"></i>
+                    </div>
+                    <div class="chat-bubble">
+                        ${content.replace(/\n/g, '<br>')}
+                        ${sourcesHtml}
+                        ${suggestionsHtml}
+                    </div>
+                </div>
+            `;
+
+            messages.scrollTop = messages.scrollHeight;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+    </script>
+</body>
+</html>
